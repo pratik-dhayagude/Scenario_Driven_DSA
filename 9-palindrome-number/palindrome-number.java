@@ -1,4 +1,9 @@
-class Solution {
+/*
+    ->Author:Pratik Dhananjay Dhayagude
+*/
+
+class Solution 
+{
     public boolean isPalindrome(int x)
     {
         int iDigit =0;
