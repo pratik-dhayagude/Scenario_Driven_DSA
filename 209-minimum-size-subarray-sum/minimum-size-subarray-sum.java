@@ -9,7 +9,7 @@ class Solution
         int n = nums.length;
 
 
-        for(high =0;high<n;high++)
+        while(high < n)
         {
             Sum = Sum+nums[high];
             while(Sum>=target)
@@ -18,6 +18,7 @@ class Solution
                 Sum = Sum - nums[low];
                 low++;
             }
+            high++;
 
         }
         if(Min == Integer.MAX_VALUE)
