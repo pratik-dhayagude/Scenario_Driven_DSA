@@ -1,4 +1,7 @@
-class Solution {
+// Author -> Pratik Dhananjay Dhayagude
+
+class Solution 
+{
     public int[] twoSum(int[] nums, int target) 
     {
         int i,j;
