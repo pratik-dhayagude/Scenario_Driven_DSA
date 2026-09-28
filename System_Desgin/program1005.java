@@ -15,7 +15,6 @@
     13:ExitGAte Class
     14:ParkingLot class (SingleTone Pattern)
     15:Main Classs(Controller)
-
 */
 
 
@@ -37,7 +36,6 @@ enum VehicalType
 
 }
 // Repreasent different type of parking spot
-
 enum SoptType
 {
      BIKE,CAR,TRUCK
@@ -48,14 +46,11 @@ enum TicketStatus
     ACTIVE,
     CLOSED
 }
-
-
 /*///////////////////////////////////////////////////////////////////
      2: Create VehicalClass Hierarchy
      It is used to create multiple type of class which repreasent the type of vehical
      concept : Abstraction , Inheritance, Ploymorphism , encpsulation
 */////////////////////////////////////////////////////
-
 // Class Which repreasent a generic vehical
 abstract class Vehical
 {
@@ -311,10 +306,235 @@ class TruckSpot extends ParkingSpot
     }
 }
 
+/*///////////////////////////////////////////////////////////////////
+     5 : Parking Observer Class
+     It is used to Automatically update Display board hwen the parking avalibility changes 
+     concept : observer desgin Pattern
+*///////////////////////////////////////////////////////////////////
+/**
+ * Inner
+ */
+interface ParkingObserver 
+{
+    void update();
+}
 
 
+/*///////////////////////////////////////////////////////////////////
+     6 : Parking Floor Class
 
-class program999
+     It is used to manage Parking Floor
+
+     concept : composition ,ArraryList,object management
+*///////////////////////////////////////////////////////////////////
+
+class ParkingFloor
+{
+    // unique floor number
+    private int floorNumber;
+
+    // Collection of all parking Spots
+
+    //Upcasting (Bike/Car/Truck)
+    private List<ParkingSpot> parkingSpots;
+
+    // Collection of Observer registereg for the floor
+    private List<ParkingObserver> observers;
+
+    public ParkingFloor(int floorNumber)
+    {
+        this.floorNumber = floorNumber;
+
+        this.parkingSpots = new ArrayList<>();
+        this.observers = new ArrayList<>();
+    }
+
+    public int getFloorNumber()
+    {
+        return this.floorNumber;
+    }
+    
+    public void addParkingSpot(ParkingSpot Spot)
+    {
+        parkingSpots.add(Spot);
+
+
+    }
+    public void Observer(ParkingObserver observer)
+    {
+        //Upcatsing 
+        observers.add(observer);
+
+    }
+    private void notifyObservers()
+    {
+        for(ParkingObserver observer:observers)
+        {
+            observer.update();
+        }
+
+    }
+    // Maethod is going to search Parking spot for apecific type of vehical 
+    // Upcating VehicayType => (Bike/Car/Truck)
+    public ParkingSpot findAvalibleSpot(Vehical vehical)
+    {
+     
+        for(ParkingSpot spot:parkingSpots)
+        {
+            if(!spot.isOccupied() && spot.canFitVehical(vehical))
+            {
+                return spot;
+
+            }
+        }
+        return null;
+        
+    }
+    // Called when new vehical gets parked
+    public void occupySpot(ParkingSpot spot,Vehical vehical)
+    {
+
+        //Allocated spot for the vehical
+        spot.parkVehical(vehical);
+      //   Notify All the observers about the avalibility 
+        notifyObservers();
+    }
+    // Upcasting
+    public void releseSpot(ParkingSpot spot)
+    {
+        // Relese the already allocated spot
+        spot.removeVehical();
+        //Notify All the observers about the avalibility 
+        notifyObservers();
+    }
+    public int getAvalibleCount(SoptType type)
+    {
+        int Count=0;
+        for(ParkingSpot spot:parkingSpots)
+        {
+            if(spot.getSoptType() == type && !spot.isOccupied())
+            {
+                Count++;
+
+            }
+
+        }
+        return Count;
+
+    }
+    // Display All Parking Spot on all specific floor
+    public void displayFloor()
+    {
+        System.out.println();
+        System.out.println("Floor:"+floorNumber);
+
+        for(ParkingSpot spot:parkingSpots)
+        {
+            spot.display();
+
+        }
+    }
+}// End of Class ParkingFloor
+
+
+/*///////////////////////////////////////////////////////////////////
+     7 : Create a Parking Display Board class 
+     It is used to createe a class which Display the Parking Status
+
+     Subject ->  Parking Floor 
+     observer->  Parking Disply Board
+
+     concept : Observer Desgin Pattern
+     
+     Note :    Any Obserever is going to observ the subject
+               There will be multiple observers for the one subject
+*////////////////////////////////////////////////////////////////////
+class ParkingDisplayBoard implements ParkingObserver
+{
+    // Floor whose availibility is displayed by this board
+
+    private ParkingFloor floor;
+     
+    public ParkingDisplayBoard(ParkingFloor floor)
+    {
+        this.floor = floor;
+
+    }
+
+    // Automitically Called Whenever Floor avalibility changes 
+    @Override 
+    public void update()
+    {   
+        System.out.println();
+        System.out.println("===================================");
+        System.out.println("-----------Display Board-----------");
+        System.out.println("FloorNumber:"+floor.getFloorNumber());
+        System.out.println("BikeSpot In the Floor:"+floor.getAvalibleCount(SoptType.BIKE));
+        System.out.println("CarSpot In the Floor:"+floor.getAvalibleCount(SoptType.CAR));
+        System.out.println("BikeSpot In the Floor:"+floor.getAvalibleCount(SoptType.TRUCK));
+        System.out.println("===================================");
+        System.out.println();
+
+
+    }
+}
+// We can create new observers for same subject
+/*
+    -> Class ParkingWeb Impliments ParkingObserver
+    {
+        public void Update()
+        {
+
+        }
+    }
+    -> Class ParkingApp impliments ParingObserver
+    {
+        public void Update
+        {
+            
+        }
+    }
+
+*/
+
+/*///////////////////////////////////////////////////////////////////
+     8 : Create a Parking Stratergy Class 
+     It is used to createe a class ParkingStrategy which is responsible 
+     to decide the parking spot selection
+
+     Subject ->  Parking Floor 
+     observer->  Parking Disply Board
+
+     concept : Strategy desgin Pattern
+    
+*////////////////////////////////////////////////////////////////////
+
+// defines a comman concepts for spot selection selection algorithum
+interface ParkingStrategy
+{
+    ParkingSpot findSpot(List<ParkingFloor> floors,Vehical vehical);
+}
+// selects the first avalible parkng spot
+class FirstAvalibleParkingStrategy implements ParkingStrategy
+{
+    @Override 
+    public ParkingSpot findSpot(List<ParkingFloor> floors,Vehical vehical)
+    {
+        for(ParkingFloor floor : floors)
+        {
+            ParkingSpot spot = floor.findAvalibleSpot(vehical);
+            if(spot != null)
+            {
+                return spot;
+            }
+
+        }
+        return null;
+
+    }
+}
+
+class program1005
 {
     public static void main(String A[])
     {

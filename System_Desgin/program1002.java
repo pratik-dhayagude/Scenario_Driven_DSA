@@ -15,7 +15,6 @@
     13:ExitGAte Class
     14:ParkingLot class (SingleTone Pattern)
     15:Main Classs(Controller)
-
 */
 
 
@@ -37,7 +36,6 @@ enum VehicalType
 
 }
 // Repreasent different type of parking spot
-
 enum SoptType
 {
      BIKE,CAR,TRUCK
@@ -48,14 +46,11 @@ enum TicketStatus
     ACTIVE,
     CLOSED
 }
-
-
 /*///////////////////////////////////////////////////////////////////
      2: Create VehicalClass Hierarchy
      It is used to create multiple type of class which repreasent the type of vehical
      concept : Abstraction , Inheritance, Ploymorphism , encpsulation
 */////////////////////////////////////////////////////
-
 // Class Which repreasent a generic vehical
 abstract class Vehical
 {
@@ -311,10 +306,112 @@ class TruckSpot extends ParkingSpot
     }
 }
 
+/*///////////////////////////////////////////////////////////////////
+     5 : Parking Observer Class
+     It is used to Automatically update Display board hwen the parking avalibility changes 
+     concept : observer desgin Pattern
+*///////////////////////////////////////////////////////////////////
+/**
+ * Inner
+ */
+interface ParkingObserver 
+{
+    void update();
+}
 
 
+/*///////////////////////////////////////////////////////////////////
+     6 : Parking Floor Class
+     It is used to manage Parking Floor
+     concept : composition ,ArraryList,object management
+*///////////////////////////////////////////////////////////////////
 
-class program999
+class ParkingFloor
+{
+    // unique floor number
+    private int floorNumber;
+
+    // Collection of all parking Spots
+
+    //Upcasting (Bike/Car/Truck)
+    private List<ParkingSpot> parkingSpots;
+
+    // Collection of Observer registereg for the floor
+    private List<ParkingObserver> observers;
+
+    public ParkingFloor(int floorNumber)
+    {
+        this.floorNumber = floorNumber;
+
+        this.parkingSpots = new ArrayList<>();
+        this.observers = new ArrayList<>();
+    }
+
+    public int getFloorNumber()
+    {
+        return this.floorNumber;
+    }
+    
+    public void addParkingSpot(ParkingSpot Spot)
+    {
+        parkingSpots.add(Spot);
+
+
+    }
+    public void Observer(ParkingObserver observer)
+    {
+        //Upcatsing 
+        observers.add(observer);
+
+    }
+    private void notifyObservers()
+    {
+        for(ParkingObserver observer:observers)
+        {
+            observer.update();
+        }
+
+    }
+    // Maethod is going to search Parking spot for apecific type of vehical 
+    // Upcating VehicayType => (Bike/Car/Truck)
+    public ParkingSpot findAvalibleSpot(Vehical vehical)
+    {
+     
+        for(ParkingSpot spot:parkingSpots)
+        {
+            if(!spot.isOccupied() && spot.canFitVehical(vehical))
+            {
+                return spot;
+
+            }
+        }
+        return null;
+        
+    }
+    // Called when new vehical gets parked
+    public void occupySpot(ParkingSpot spot,Vehical vehical)
+    {
+
+        //Allocated spot for the vehical
+        spot.parkVehical(vehical);
+      //   Notify All the observers about the avalibility 
+        notifyObservers();
+    }
+    // Upcasting
+    public void releseSpot(ParkingSpot spot)
+    {
+        // Relese the already allocated spot
+        spot.removeVehical();
+        //Notify All the observers about the avalibility 
+        notifyObservers();
+    }
+    
+
+
+}
+
+
+class program1002
 {
     public static void main(String A[])
     {

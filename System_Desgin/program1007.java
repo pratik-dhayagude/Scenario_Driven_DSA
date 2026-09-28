@@ -36,7 +36,6 @@ enum VehicalType
 
 }
 // Repreasent different type of parking spot
-
 enum SoptType
 {
      BIKE,CAR,TRUCK
@@ -47,14 +46,11 @@ enum TicketStatus
     ACTIVE,
     CLOSED
 }
-
-
 /*///////////////////////////////////////////////////////////////////
      2: Create VehicalClass Hierarchy
      It is used to create multiple type of class which repreasent the type of vehical
      concept : Abstraction , Inheritance, Ploymorphism , encpsulation
 */////////////////////////////////////////////////////
-
 // Class Which repreasent a generic vehical
 abstract class Vehical
 {
@@ -318,15 +314,17 @@ class TruckSpot extends ParkingSpot
 /**
  * Inner
  */
-interface PArkingObserver 
+interface ParkingObserver 
 {
-    void Update();
+    void update();
 }
 
 
 /*///////////////////////////////////////////////////////////////////
      6 : Parking Floor Class
+
      It is used to manage Parking Floor
+
      concept : composition ,ArraryList,object management
 *///////////////////////////////////////////////////////////////////
 
@@ -337,6 +335,7 @@ class ParkingFloor
 
     // Collection of all parking Spots
 
+    //Upcasting (Bike/Car/Truck)
     private List<ParkingSpot> parkingSpots;
 
     // Collection of Observer registereg for the floor
@@ -363,6 +362,7 @@ class ParkingFloor
     }
     public void Observer(ParkingObserver observer)
     {
+        //Upcatsing 
         observers.add(observer);
 
     }
@@ -370,23 +370,280 @@ class ParkingFloor
     {
         for(ParkingObserver observer:observers)
         {
-            observer.Update();
+            observer.update();
         }
 
     }
-    public ParkingSpot findAvalibleSpot()
+    // Maethod is going to search Parking spot for apecific type of vehical 
+    // Upcating VehicayType => (Bike/Car/Truck)
+    public ParkingSpot findAvalibleSpot(Vehical vehical)
     {
+     
+        for(ParkingSpot spot:parkingSpots)
+        {
+            if(!spot.isOccupied() && spot.canFitVehical(vehical))
+            {
+                return spot;
+
+            }
+        }
+        return null;
+        
+    }
+    // Called when new vehical gets parked
+    public void occupySpot(ParkingSpot spot,Vehical vehical)
+    {
+
+        //Allocated spot for the vehical
+        spot.parkVehical(vehical);
+      //   Notify All the observers about the avalibility 
+        notifyObservers();
+    }
+    // Upcasting
+    public void releseSpot(ParkingSpot spot)
+    {
+        // Relese the already allocated spot
+        spot.removeVehical();
+        //Notify All the observers about the avalibility 
+        notifyObservers();
+    }
+    public int getAvalibleCount(SoptType type)
+    {
+        int Count=0;
+        for(ParkingSpot spot:parkingSpots)
+        {
+            if(spot.getSoptType() == type && !spot.isOccupied())
+            {
+                Count++;
+
+            }
+
+        }
+        return Count;
+
+    }
+    // Display All Parking Spot on all specific floor
+    public void displayFloor()
+    {
+        System.out.println();
+        System.out.println("Floor:"+floorNumber);
+
+        for(ParkingSpot spot:parkingSpots)
+        {
+            spot.display();
+
+        }
+    }
+}// End of Class ParkingFloor
+
+
+/*///////////////////////////////////////////////////////////////////
+     7 : Create a Parking Display Board class 
+     It is used to createe a class which Display the Parking Status
+
+     Subject ->  Parking Floor 
+     observer->  Parking Disply Board
+
+     concept : Observer Desgin Pattern
+     
+     Note :    Any Obserever is going to observ the subject
+               There will be multiple observers for the one subject
+*////////////////////////////////////////////////////////////////////
+class ParkingDisplayBoard implements ParkingObserver
+{
+    // Floor whose availibility is displayed by this board
+
+    private ParkingFloor floor;
+     
+    public ParkingDisplayBoard(ParkingFloor floor)
+    {
+        this.floor = floor;
 
     }
 
+    // Automitically Called Whenever Floor avalibility changes 
+    @Override 
+    public void update()
+    {   
+        System.out.println();
+        System.out.println("===================================");
+        System.out.println("-----------Display Board-----------");
+        System.out.println("FloorNumber:"+floor.getFloorNumber());
+        System.out.println("BikeSpot In the Floor:"+floor.getAvalibleCount(SoptType.BIKE));
+        System.out.println("CarSpot In the Floor:"+floor.getAvalibleCount(SoptType.CAR));
+        System.out.println("BikeSpot In the Floor:"+floor.getAvalibleCount(SoptType.TRUCK));
+        System.out.println("===================================");
+        System.out.println();
 
 
+    }
+}
+// We can create new observers for same subject
+/*
+    -> Class ParkingWeb Impliments ParkingObserver
+    {
+        public void Update()
+        {
+
+        }
+    }
+    -> Class ParkingApp impliments ParingObserver
+    {
+        public void Update
+        {
+            
+        }
+    }
+
+*/
+
+/*///////////////////////////////////////////////////////////////////
+     8 : Create a Parking Stratergy Class 
+     It is used to createe a class ParkingStrategy which is responsible 
+     to decide the parking spot selection
+
+     Subject ->  Parking Floor 
+     observer->  Parking Disply Board
+
+     concept : Strategy desgin Pattern
+    
+*////////////////////////////////////////////////////////////////////
+
+// defines a comman concepts for spot selection selection algorithum
+interface ParkingStrategy
+{
+    ParkingSpot findSpot(List<ParkingFloor> floors,Vehical vehical);
+}
+// selects the first avalible parkng spot
+class FirstAvalibleParkingStrategy implements ParkingStrategy
+{
+    @Override 
+    public ParkingSpot findSpot(List<ParkingFloor> floors,Vehical vehical)
+    {
+        for(ParkingFloor floor : floors)
+        {
+            ParkingSpot spot = floor.findAvalibleSpot(vehical);
+            if(spot != null)
+            {
+                return spot;
+            }
+
+        }
+        return null;
+
+    }
+}
+/*///////////////////////////////////////////////////////////////////
+     9 : Create a PricingStrategy class
+     It is used to createe a class PricingStrategy 
+     it keeps the pricing algorithum indipendrnt of exit logic 
+
+     concept : Strategy desgin Pattern
+    
+*////////////////////////////////////////////////////////////////////
+interface PricingStrategy
+{
+    double calculatePrice(Vehical vehical,long hours);
+
+}
+class NormalPriceStartegy implements PricingStrategy
+{
+    @Override 
+    public double calculatePrice(Vehical vehical,long hours)
+    {
+        if(hours <= 0)
+        {
+            hours = 1;
+
+        }
+        switch (vehical.getVehicalType())
+        {
+            case BIKE:
+                return hours*20;
+
+            case CAR:
+                
+                return hours*50;
+        
+            case TRUCK:
+                return hours*100;
+            default:
+                return 0;
+        }
+    }
 
 
 }
+class WeekendPriceStartegy implements PricingStrategy
+{
+    @Override 
+    public double calculatePrice(Vehical vehical,long hours)
+    {
+        if(hours <= 0)
+        {
+            hours = 1;
+
+        }
+        switch (vehical.getVehicalType())
+        {
+            case BIKE:
+                return hours*40;
+
+            case CAR:
+                
+                return hours*100;
+        
+            case TRUCK:
+                return hours*200;
+            default:
+                return 0;
+        }
+    }
+
+}
+
+/*///////////////////////////////////////////////////////////////////
+     10 : Create a PaymentStrategy class
+     It is used to createe a class PaymentStrategy  
+     it supports different types of payment methods 
+
+     concept : Strategy desgin Pattern
+    
+*////////////////////////////////////////////////////////////////////
+// comman contract for all payment method
+interface PaymentStrategy
+{
+    void Pay(double amount);
+}
+class UPIpayment implements PaymentStrategy
+{
+    @Override 
+    public void Pay(double amount)
+    {
+        System.out.println("Amount will be paid by UPI:"+amount);
+    }
+
+}
+class Cardpayment implements PaymentStrategy
+{
+    @Override 
+    public void Pay(double amount)
+    {
+        System.out.println("Amount will be paid by Card:"+amount);
+    }
+
+}
+class CashPayment implements PaymentStrategy
+{
+    @Override 
+    public void Pay(double amount)
+    {
+        System.out.println("Amount will be recived thrugh cash:"+amount);
+    }
+}
 
 
-class program1000
+class program1007
 {
     public static void main(String A[])
     {
